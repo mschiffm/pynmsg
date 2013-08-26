@@ -47,6 +47,7 @@ cdef class nullinput(object):
                 msg = _recv_message()
                 msg.set_instance(_msgarray[i])
                 msg_list.append(msg)
+            free(_msgarray)
 
         return msg_list
 
