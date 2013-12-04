@@ -7,8 +7,8 @@ cdef class message(object):
     cdef public long time_sec
     cdef public int time_nsec
     cdef public long source
-    cdef public str operator
-    cdef public str group
+    cdef public object operator
+    cdef public object group
     cdef public bool has_source
     cdef public bool has_operator
     cdef public bool has_group
