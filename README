@@ -1,0 +1,17 @@
+pynmsg
+======
+
+This is `pynmsg`, a Python extension module implemented in
+[Cython](http://cython.org/) for the [nmsg](https://github.com/farsightsec/nmsg)
+C library.
+
+Building
+--------
+
+Building from a git checkout requires a C compiler, Python, Cython, and the
+`nmsg` library to be installed first. Distribution tarballs ship with a copy of
+the Cython-generated code and do not require Cython to actually be installed.
+
+`pynmsg` is built by running `setup.py`:
+
+    python setup.py build
