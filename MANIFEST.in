@@ -1,0 +1,1 @@
+include COPYRIGHT LICENSE examples/*.py _nmsg.c _nmsg.pyx nmsg.pxi nmsg.py nmsg_input.pyx nmsg_io.pyx nmsg_message.pyx nmsg_msgmod.pyx nmsg_msgtype.pyx nmsg_output.pyx nmsg_util.pyx
