@@ -10,7 +10,6 @@ cdef class io(object):
 
     cdef list inputs
     cdef list outputs
-    cdef list callbacks
 
     def __cinit__(self):
         self._instance = NULL
@@ -25,7 +24,6 @@ cdef class io(object):
         self.filter_source = 0
         self.inputs = []
         self.outputs = []
-        self.callbacks = []
 
         self._instance = nmsg_io_init()
         if self._instance == NULL:
@@ -97,7 +95,6 @@ cdef class io(object):
 
         o = output.open_callback(fn)
         self.add_output(o)
-        self.callbacks.append(fn)
 
     def set_filter_msgtype(self, vid, msgtype):
         if type(vid) == str:
