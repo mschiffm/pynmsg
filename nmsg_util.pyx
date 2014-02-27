@@ -13,12 +13,29 @@
 # limitations under the License.
 
 def ip_pton(ip):
+    """
+    ip_pton(ip):
+
+    Wrapper around socket.inet_pton that transparently supports both IPv4
+    and IPv6 addresses.
+    """
     try:
         return socket.inet_pton(socket.AF_INET, ip)
     except:
         return socket.inet_pton(socket.AF_INET6, ip)
 
 def print_nmsg_header(m, out):
+    """
+    print_nmsg_header(m, out)
+
+    Utility function that prints an nmsg header in the same way as
+    nmsgtool.
+
+    [time] [vid:msgtype vname msgtypename] [source] [operator] [group]
+
+    @type m: nmsg.message
+    @type out: object with write(str) method
+    """
     tm = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(m.time_sec))
     out.write('[%s.%d] ' % (tm, m.time_nsec))
     out.write('[%d:%d %s %s] ' % (m.vid, m.msgtype,
