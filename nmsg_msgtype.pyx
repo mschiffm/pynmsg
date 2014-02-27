@@ -13,6 +13,22 @@
 # limitations under the License.
 
 class _msgtype(object):
+    """
+    An instance of this object will have members for each available
+    vendor, each of which has members mapping to a class for each
+    msgtype. e.g.::
+
+        m = msgtype.base.encode()
+
+    All available message modules are automatically loaded and
+    recompilation of pynmsg is not necessary to include new modules.
+
+    This object has a dictionary member called 'types' that contains a
+    mapping of all vendors to messagetypes.  This might look like::
+
+        {'base': [ 'dns', 'dnsqr', 'email', 'encode', 'http', 'ipconn',
+                'linkpair', 'logline', 'ncap', 'packet', 'pkt', 'xml']}
+    """
     def __init__(self):
         cdef char *vname_str
         cdef char *mname_str
