@@ -13,6 +13,17 @@
 # limitations under the License.
 
 def input_open_file(obj):
+    """
+    input_open_file(obj)
+
+    Opens an input file for reading.  This supports file names or objects
+    with valid fileno() members, like file and os.pipe.
+
+    @param obj: a file name or open file
+    @type obj: string, object with fileno()
+
+    @rtype: nmsg.input
+    """
     if type(obj) == str:
         obj = open(obj)
     i = input()
@@ -20,6 +31,19 @@ def input_open_file(obj):
     return i
 
 def input_open_sock(addr, port):
+    """
+    input_open_sock(addr, port)
+
+    Opens a socket for reading.
+
+    @param addr: An ipv4 address in presentation format.
+    @type addr: string
+
+    @param port: An UDP port number.
+    @type port: int
+
+    @rtype: nmsg.input
+    """
     obj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     obj.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
