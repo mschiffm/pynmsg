@@ -13,23 +13,92 @@
 # limitations under the License.
 
 cdef class message(object):
+    """
+    An nmsg message.
+    
+    Has vid and msgtype attributes that can be used to identify which
+    msgmod it uses.
+
+    Usage::
+
+        m = nmsg.msgtype.#vendor.#type()
+        t = time.time()
+        m.time_sec = int(t)
+        m.time_nsec = int((t - int(t)) * 1E9)
+        m.has_source = True
+        m.source = 0x1a1a1a1a # replace with your source id
+        # do something with m.fields
+    """
     cdef msgmod _mod
     cdef nmsg_message_t _instance
     cdef bool changed
+
     cdef readonly int vid
+    """
+    @ivar vid: Vendor ID
+    @type vid: int
+    """
     cdef readonly int msgtype
+    """
+    @ivar msgtype: Message type, use with vid to identify object.
+    @type msgtype: int
+    """
+
     cdef public long time_sec
+    """
+    @ivar time_sec: Message timestamp (seconds)
+    @type time_sec: int
+    """
     cdef public int time_nsec
+    """
+    @ivar time_sec: Message timestamp (nanosecond component)
+    @type time_sec: int
+    """
     cdef public long source
+    """
+    @ivar source: Opaque ID number of message submitter.
+    @type source: int
+    """
     cdef public object operator
+    """
+    @ivar operator: Label identifying the sensor operator.
+    @type operator: string
+    """
     cdef public object group
+    """
+    @ivar group: Tag describing the payload.
+    @type group: string
+    """
     cdef public bool has_source
+    """
+    @ivar has_source: Whether the source field has been set or not.
+    @type has_source: bool
+    """
     cdef public bool has_operator
+    """
+    @ivar has_operator: Whether the operator field has been set or not.
+    @type has_operator: bool
+    """
     cdef public bool has_group
+    """
+    @ivar has_group: Whether the group field has been set or not.
+    @type has_group: bool
+    """
 
     cdef readonly object fields
+    """
+    @ivar fields:
+    @type fields: list
+    """
     cdef readonly object field_types
+    """
+    @ivar field_types: a dict of this message type's available field types
+    @itype field_types
+    """
     cdef readonly object field_names
+    """
+    @ivar field_names: a list of this message type's available field names
+    """
 
     def __cinit__(self):
         self._instance = NULL
@@ -42,6 +111,9 @@ cdef class message(object):
         self.changed = False
 
     def __init__(self, unsigned vid, unsigned msgtype):
+        """
+        init(self, vid, msgtype)
+        """
         self.vid = vid
         self.msgtype = msgtype
         self._mod = msgmod(self.vid, self.msgtype)
@@ -367,6 +439,11 @@ cdef class message(object):
         self.changed = False
 
     def __contains__(self, key):
+        """
+        __contains__(self, key)
+
+        Returns whether key is in the message's field list.
+        """
         return key in self.fields
 
     def __getitem__(self, key):
