@@ -51,6 +51,9 @@ def msgmod_mname_to_msgtype(unsigned vid, char *mname):
     return msgtype
 
 cdef class msgmod(object):
+    """
+    nmsg message module
+    """
     cdef unsigned _vid
     cdef unsigned _msgtype
     cdef void *_clos
