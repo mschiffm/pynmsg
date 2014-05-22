@@ -21,7 +21,6 @@ __revision__ = "1.1"
 import sys
 import nmsg
 import argparse
-import pprint
 
 class UnsupportedEncodeType(Exception):
     pass
@@ -42,8 +41,8 @@ class EncodeDummy(object):
 
 try:
     import json
-    #encode_json = Encode(json.dumps(sort_keys=True, indent=4), json.loads)
-    encode_json = Encode(json.dumps, json.loads)
+    #encode_json = Encode(json.dumps, json.loads)
+    encode_json = Encode(lambda x: json.dumps(x, sort_keys=True, indent=4), json.loads)
 except ImportError:
     encode_json = EncodeDummy
 
@@ -81,7 +80,7 @@ def make_utf8(input):
     else:
         return input
 
-def process(m, prettyprint):
+def process(m):
     nmsg.msgmod_vname_to_vid('base')
     vid = nmsg.msgmod_vname_to_vid('base')
     msgtype = nmsg.msgmod_mname_to_msgtype(vid, 'encode')
@@ -91,8 +90,6 @@ def process(m, prettyprint):
     print "type: {0}".format(m["type"])
     if m["type"] in table_encode:
         try:
-            #print "payload: {0}".format(make_utf8(table_encode[m['type']].decode(m['payload'])))
-            #print "payload: {0}".format(json.dumps(table_encode[m['type']].decode(m['payload']), sort_keys=True, indent=4))
             print "payload: {0}".format(table_encode[m['type']].encode((table_encode[m['type']].decode(m['payload']))))
         except UnsupportedEncodeType:
             sys.stdout.write('payload: <UNABLE TO DECODE>')
@@ -100,22 +97,22 @@ def process(m, prettyprint):
         sys.stdout.write('payload: <UNKNOWN ENCODING>')
     sys.stdout.write('\n')
 
-def main(addr, port, prettyprint):
+def main(addr, port):
     i = nmsg.input.open_sock(addr, port)
     print "listening on {0}/{1}".format(addr, port)
     while True:
         m = i.read()
         if m:
-            process(m, prettyprint)
+            process(m)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = "simple NMSG encode server")
     parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
             help = "address/port to listen for incoming NMSG datagrams")
-    parser.add_argument("-p", "--prettyprint", dest = "prettyprint", 
-            action = "store_true", default = False, 
-            help = "pretty print output (JSON only)")
+    #parser.add_argument("-p", "--prettyprint", dest = "prettyprint", 
+    #        action = "store_true", default = False, 
+    #        help = "pretty print output (JSON only)")
 
     args = parser.parse_args()
     address, port = args.addr_port.split("/")
-    main(address, int(port), args.prettyprint)
+    main(address, int(port))

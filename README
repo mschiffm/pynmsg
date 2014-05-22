@@ -246,11 +246,12 @@ decodes and prints the results. Other NMSG datagrams are silently dropped.
 
 By default, it listens on 127.0.0.1/9430, but this can be overridden. 
 For every NMSG datagram it receives it prints to stderr the header info followed
-by a decoded payload (or error message).
+by a decoded payload (or error message). JSON encoded payloads are
+pretty-printed.
 
 ```
 $ ./nmsg_encode_hello_server.py -h
-usage: nmsg_encode_hello_server.py [-h] [-p] [addr_port]
+usage: nmsg_encode_hello_server.py [-h] [addr_port]
 
 Simple NMSG encoding server
 
@@ -259,13 +260,26 @@ positional arguments:
 
 optional arguments:
   -h, --help         show this help message and exit
-  -p, --prettyprint  pretty print output (JSON only)
 ```
-
-
-
+Some sample output is below:
 ```
-foo
+$ ./nmsg_encode_hello_server.py 
+listening on 127.0.0.1/9430
+[2014-05-22 19:51:58.290600061] [1:11 base encode] [] [] [] 
+type: JSON
+payload: {
+    "foo": "bar", 
+    "hello": "world", 
+    "id": 0
+}
+
+[2014-05-22 19:51:58.290648937] [1:11 base encode] [] [] [] 
+type: JSON
+payload: {
+    "foo": "bar", 
+    "hello": "world", 
+    "id": 1
+}
 ```
 
 
