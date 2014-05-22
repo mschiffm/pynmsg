@@ -14,11 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Please see the README.mkd for API and program specific details
+
+__revision__ = "1.1"
+
 import nmsg
 
-o = nmsg.output.open_sock('127.0.0.1', 9430)
+o = nmsg.output.open_sock('127.0.0.1', 9431)
 
-m = nmsg.msgtype.isc.ipconn()
+m = nmsg.msgtype.base.ipconn()
 
 for i in range(0, 100):
     m['srcip'] = '127.0.0.%s' % i

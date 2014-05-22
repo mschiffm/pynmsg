@@ -1,17 +1,166 @@
-pynmsg
+#pynmsg
 ======
 
 This is `pynmsg`, a Python extension module implemented in
 [Cython](http://cython.org/) for the [nmsg](https://github.com/farsightsec/nmsg)
-C library.
+C library. If you want to shuffle NMSG datagrams to and fro using Python, this 
+is the right place.
 
-Building
+##Building
 --------
 
-Building from a git checkout requires a C compiler, Python, Cython, and the
-`nmsg` library to be installed first. Distribution tarballs ship with a copy of
-the Cython-generated code and do not require Cython to actually be installed.
+Building from a git checkout requires a C compiler, Python (including the Python developer package), Cython, and the `nmsg` library to be installed first.
+Distribution tarballs ship with a copy of the Cython-generated code and do not
+require Cython to actually be installed.
 
 `pynmsg` is built by running `setup.py`:
 
     python setup.py build
+
+##Testing
+-------
+Here's a short example to get you started:
+```
+foo
+```
+##API Reference
+-------------
+Here's an abridged reference to the top level classes and methods you'll need
+```python
+foo.foo(foo)
+```
+
+##Example Tools Reference
+-----------------------
+Included with `pynmsg` are a suite of small functional tools to demonstrate the
+utility of `nmsg` extended into Python.
+
+###nmsg_cat.py
+-----------
+A simple cat-like NMSG redirector. 
+```
+$ ./nmsg_cat.py -h
+usage: nmsg_cat.py [-h] [-i INPUT] [-o OUTPUT]
+
+redirect NMSG datagrams
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        address/port to receive incoming NMSG datagrams
+  -o OUTPUT, --output OUTPUT
+                        address/port to fire outgoing NMSG datagrams
+```
+Receives NMSG datagrams in one end and 
+fires them out the other. The program prints to stderr a `.` for every 1,000 
+datagrams it forwards and for every 10,000, the actual number.
+
+By default, `nmsg_cat.py` uses localhost/8430 to listen for input and 
+localhost/9430 to send its output. These can be overridden at the command line.
+
+A sample invocation, assuming an NMSG producer is sending datagrams to 
+127.0.0.1/8431 and something is listening for them at 127.0.0.1/9431:
+```shell
+$ ./nmsg_cat.py -i
+redirecting NMSGS: 127.0.0.1/8431-->127.0.0.1/9431
+..........10000..........20000..........30000..........40000...
+```
+
+###nmsg_encode_hello_client.py
+---------------------------
+Encodes a simple text blob using one or more encodings and send one or more NMSG
+datagrams.
+```
+$ ./nmsg_encode_hello_client.py -h
+usage: nmsg_encode_hello_client.py [-h] [-i ITERATIONS]
+                                   [-t {TEXT,JSON,YAML,MSGPACK,XML,ALL}]
+                                   [addr_port]
+
+simple NMSG client
+
+positional arguments:
+  addr_port             address/port to listen for incoming NMSG datagrams
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i ITERATIONS, --iterations ITERATIONS
+                        number of iterations to send
+  -t {TEXT,JSON,YAML,MSGPACK,XML,ALL}, --type {TEXT,JSON,YAML,MSGPACK,XML,ALL}
+                        NSMG datagram(s) to send, use 'ALL' to send all types
+```
+It uses the simple [ISC encoder](https://archive.farsightsecurity.com/NmsgType_ISC_encode/) to encapsulate payloads.
+
+```
+$ ./nmsg_encode_hello_client.py -tALL -i2 127.0.0.1/8431
+sending NMSG datagrams to 127.0.0.1/8431
+sent 2 TEXT-encoded payloads
+sent 2 JSON-encoded payloads
+sent 2 YAML-encoded payloads
+sent 2 MSGPACK-encoded payloads
+sent 2 dummy XML-encoded payloads
+```
+
+###nmsg_encode_hello_server.py
+---------------------------
+Listens for NMSG datagrams and decodes and prints the results. 
+
+```
+$ ./nmsg_encode_hello_server.py -h
+usage: nmsg_encode_hello_server.py [-h] [-p] [addr_port]
+
+Simple NMSG encoding server
+
+positional arguments:
+  addr_port          address/port to listen for incoming NMSG datagrams
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -p, --prettyprint  pretty print output (JSON only)
+```
+
+Has support for the following serialization encodings:
+
+ - [JSON](http://www.json.org/)
+ - [YAML](http://www.yaml.org/)
+ - [MsgPack](http://msgpack.org/)
+ - [XML](http://www.xml.org)
+
+And:
+
+ - Text
+
+While it is written as a mate for `nmsg_encode_hello_client.py`, it is also a 
+standalone tool that can consume NMSG datagrams from any source, provided they
+are in an encoding format it understands. By default, it listens on 
+127.0.0.1/9430, but this can be overridden. For every NMSG datagram it receives
+it prints to stderr the header info followed by a decoded payload (or error
+message).
+
+```
+foo
+```
+
+###nmsg_message.py
+---------------
+
+###nmsg_channel_dump.py
+--------------------
+
+###nmsg_file_dump.py
+-----------------
+
+###nmsg_nonblocking.py
+-------------------
+
+###nmsg_io_callback.py
+-------------------
+
+###nmsg_sock_dump.py
+-----------------
+
+License
+-------
+
+Copyright (C) 2009-2014 Farsight Security, Inc., Licensed under the [Apache License, Version 2.0][license].
+
+[license]: http://www.apache.org/licenses/LICENSE-2.0

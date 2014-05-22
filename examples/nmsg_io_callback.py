@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Please see the README.mkd for API and program specific details
+
+__revision__ = "1.1"
+
 import nmsg
 import sys
 

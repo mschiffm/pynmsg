@@ -14,13 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import nmsg
+# Please see the README.mkd for API and program specific details
+
+__revision__ = "1.1"
+
 import sys
+import nmsg
+import argparse
 
-n = nmsg.input.open_sock('127.0.0.1', 8430)
-o = nmsg.output.open_sock('127.0.0.1', 9430)
+parser = argparse.ArgumentParser(description = "redirect NMSG datagrams")
+parser.add_argument("-i", "--input", default = "127.0.0.1/8430",
+        help = "address/port to receive incoming NMSG datagrams")
+parser.add_argument("-o", "--output", default = "127.0.0.1/9430",
+        help = "address/port to fire outgoing NMSG datagrams")
+args = parser.parse_args()
 
-print 'starting...'
+iaddr, iport = args.input.split("/")
+oaddr, oport = args.output.split("/")
+
+n = nmsg.input.open_sock(iaddr, int(iport)) 
+o = nmsg.output.open_sock(oaddr, int(oport))
+
+print "redirecting NMSGS: {0}/{1}-->{2}/{3}".format(iaddr, iport, oaddr, oport)
 c = 0
 while True:
     c += 1
