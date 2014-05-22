@@ -18,13 +18,29 @@
 
 __revision__ = "1.1"
 
+import time
 import nmsg
+import argparse
 
-o = nmsg.output.open_sock('127.0.0.1', 9431)
+
+parser = argparse.ArgumentParser(description = "simple NMSG ipconn client")
+parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
+        help = "address/port to listen for incoming NMSG datagrams")
+parser.add_argument("-n", "--number", default = 100,
+        help = "number of NMSG datagrams to send")
+args = parser.parse_args()
+
+addr, port = args.addr_port.split("/")
+
+o = nmsg.output.open_sock(addr, int(port))
 
 m = nmsg.msgtype.base.ipconn()
 
-for i in range(0, 100):
+print "sending {0} ipconn NMSG datagrams to {1}/{2}...".format(args.number, addr, port)
+for i in range(0, int(args.number)):
+    t = time.time()
+    m.time_sec = int(t)
+    m.time_nsec = int((t - int(t)) * 1E9)
     m['srcip'] = '127.0.0.%s' % i
     m['dstip'] = '127.1.0.%s' % i
     m['srcport'] = i

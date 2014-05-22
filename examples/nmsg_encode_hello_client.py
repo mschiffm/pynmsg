@@ -85,7 +85,7 @@ ENCODERS = ["TEXT", "JSON", "YAML", "MSGPACK", "XML"]
 ENCODERS_CHOICES = list(ENCODERS)
 ENCODERS_CHOICES.append("ALL")
 
-parser = argparse.ArgumentParser(description = "simple NMSG client")
+parser = argparse.ArgumentParser(description = "simple NMSG encode client")
 parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
                 help = "address/port to listen for incoming NMSG datagrams")
 parser.add_argument("-i", "--iterations", default = 3,

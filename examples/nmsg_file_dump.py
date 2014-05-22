@@ -18,11 +18,12 @@
 
 __revision__ = "1.1"
 
-import nmsg
 import sys
+import nmsg
 import time
+import argparse
 
-def main(fname, out):
+def main(fname):
     i = nmsg.input.open_file(fname)
 
     while True:
@@ -31,37 +32,41 @@ def main(fname, out):
             break
         
         tm = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(m.time_sec))
-        out.write('[%s.%d] ' % (tm, m.time_nsec))
-        out.write('[%d:%d %s %s] ' % (m.vid, m.msgtype,
+        print "[{0}.{1}]".format(tm, m.time_nsec),
+        print "[{0}:{1} {2} {3}]".format(m.vid, m.msgtype,
             nmsg.msgmod.vid_to_vname(m.vid), 
-            nmsg.msgmod.msgtype_to_mname(m.vid, m.msgtype)))
+            nmsg.msgmod.msgtype_to_mname(m.vid, m.msgtype)),
 
         if m.has_source:
-            out.write('[%.8x] ' % m.source)
+            print "[{0:008x}]".format(m.source),
         else:
-            out.write('[] ')
+            print "[]",
 
         if m.has_operator:
-            out.write('[%s] ' % m.operator)
+            print "[{0}]".format(m.operator),
         else:
-            out.write('[] ')
+            print "[]",
 
         if m.has_group:
-            out.write('[%s] ' % m.group)
+            print "[{0}]".format(m.group),
         else:
-            out.write('[] ')
+            print "[]",
 
-        out.write('\n')
+        print ""
 
         for key in m.keys():
             val = m[key]
             if type(val) == list:
                 for v in val:
-                    out.write('%s: %s\n' % (key, repr(v)))
+                    print "{0}: {1}".format(key, repr(v))
             else:
-                out.write('%s: %s\n' % (key, repr(val)))
+                print "{0}: {1}".format(key, repr(val))
 
-        out.write('\n')
+        print ""
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.stdout)
+    parser = argparse.ArgumentParser(description = "dump the contents of an NMSG file")
+    parser.add_argument("infile", action = "store",
+                help = "file containing NMSG datagrams")
+    args = parser.parse_args()
+    main(args.infile)

@@ -23,6 +23,7 @@ Here's a short example to get you started:
 ```
 foo
 ```
+
 ##API Reference
 -------------
 Here's an abridged reference to the top level classes and methods you'll need
@@ -35,9 +36,93 @@ foo.foo(foo)
 Included with `pynmsg` are a suite of small functional tools to demonstrate the
 utility of `nmsg` extended into Python.
 
+###nmsg_message.py
+---------------
+First and foremost, it'd be nice to build and send a few NMSG datagrams. Using
+`nmsg_message.py` you can do just that. It builds and sends ipconn 
+(IP connection) typed NMSG datagrams filled with bogus data. By default it sends
+NMSGs to 127.0.0.1/9430, but this can overridden.
+
+```
+$ ./nmsg_message.py -h
+usage: nmsg_message.py [-h] [-n NUMBER] [addr_port]
+
+simple NMSG ipconn client
+
+positional arguments:
+  addr_port             address/port to listen for incoming NMSG datagrams
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i NUMBER, --number NUMBER
+                        number of NMSG datagrams to send
+```
+It is invoked as per the following:
+```
+$ ./nmsg_message.py -n2 127.0.0.1/9431
+sending 2 ipconn NMSG datagrams to 127.0.0.1/9431...
+```
+Using `nmsgtool` (instantiated prior to sending), we can capture and display 
+the results:
+
+```
+$ nmsgtool -l 127.0.0.1/9431 -o -
+[18] [2014-05-22 00:51:35.526690006] [1:5 base ipconn] [00000000] [] [] 
+srcip: 127.0.0.0
+srcport: 0
+dstip: 127.1.0.0
+dstport: 65535
+
+[18] [2014-05-22 00:51:35.526719093] [1:5 base ipconn] [00000000] [] [] 
+srcip: 127.0.0.1
+srcport: 1
+dstip: 127.1.0.1
+dstport: 65534
+```
+
+###nmsg_sock_dump.py
+-----------------
+Ok, that was fun, but you probably want to write your own Python program to 
+capture and display some NMSG datagrams. Check out `nmsg_sock_dump.py`. It 
+listens for incoming NMSG datagrams using the network socket interface and
+decodes and dumps them to the screen. By default it listens for NMSGs on 
+127.0.0.1/9430, but this can overridden.
+
+```
+$ ./nmsg_sock_dump.py -h
+usage: nmsg_sock_dump.py [-h] [addr_port]
+
+listen for NMSG datagrams and dump them to the screen
+
+positional arguments:
+  addr_port   address/port to listen for incoming NMSG datagrams
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+Using `nmsg_message.py` from above we can fire off a sample NMSG datagram and 
+then capture and display it using `nmsg_sock_dump.py`:
+```
+$ ./nmsg_message.py -n1
+sending 1 ipconn NMSG datagrams to 127.0.0.1/9430...
+```
+
+```
+$ ./nmsg_sock_dump.py
+listening for NMSG datagrams on 127.0.0.1/9430...
+[2014-05-22 16:01:59.212557077] [1:5 base ipconn] [] [] [] 
+srcip: '127.0.0.0'
+dstip: '127.1.0.0'
+srcport: 0L
+dstport: 65535L
+```
 ###nmsg_cat.py
 -----------
-A simple cat-like NMSG redirector. 
+What if you need to redirect a flow of NMSG datagrams from one place to 
+another? `nmsg_cat.py` is a simple tool to do that. You can think of it as a 
+cat-like redirector for NMSG. By default, `nmsg_cat.py` uses 127.0.0.1/8430 to 
+listen for input and 127.0.0.1/9430 to send its output. These can be overridden
+at the command line.
 ```
 $ ./nmsg_cat.py -h
 usage: nmsg_cat.py [-h] [-i INPUT] [-o OUTPUT]
@@ -51,32 +136,84 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         address/port to fire outgoing NMSG datagrams
 ```
-Receives NMSG datagrams in one end and 
-fires them out the other. The program prints to stderr a `.` for every 1,000 
-datagrams it forwards and for every 10,000, the actual number.
+The program prints to stderr a `.` for every 1,000 datagrams it forwards and 
+for every 10,000, the actual number.
 
-By default, `nmsg_cat.py` uses localhost/8430 to listen for input and 
-localhost/9430 to send its output. These can be overridden at the command line.
 
 A sample invocation, assuming an NMSG producer is sending datagrams to 
 127.0.0.1/8431 and something is listening for them at 127.0.0.1/9431:
 ```shell
-$ ./nmsg_cat.py -i
+$ ./nmsg_cat.py -i127.0.0.1/8431 -o127.0.0.1/9431
 redirecting NMSGS: 127.0.0.1/8431-->127.0.0.1/9431
 ..........10000..........20000..........30000..........40000...
 ```
 
+###nmsg_file_dump.py
+-----------------
+If you want to dump the contents of a previously created NMSG file, 
+`nmsg_file_dump.py` is your avatar.
+
+```
+$ ./nmsg_file_dump.py -h
+usage: nmsg_file_dump.py [-h] infile
+
+dump the contents of an NMSG file
+
+positional arguments:
+  infile      file containing NMSG datagrams
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+Again we can leverage `nmsgtool`, this time to capture two NMSG datagrams from 
+SIE channel 80 (Conficker Sinkhole) and spit them out to a file.
+```
+$ nmsgtool -C ch80 -c 2 -w ch80-2pack.nmsg
+```
+We can use `nmsg_file_dump.py` to dump these (IPs and hostnames redacted):
+```
+$ ./nmsg_file_dump.py ch80-2pack.nmsg 
+[2014-05-22 15:16:39.935642536] [1:4 base http] [1a1a1a1a] [FSI] [trafficconverter] 
+dstip: 'xx.xx.xx.xx'
+request: 'GET / HTTP/1.1\r\nUser-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)\r\nHost: foo.bar\r\nPragma: no-cache\r\nVia: 1.0 ARJUJGSM1CB01:800 (squid/2.7.STABLE9), 1.0 internal\r\nX-Forwarded-For: xx.xx.xx.xx\r\nCache-Control: max-age=259200\r\nConnection: keep-alive\r\n\r\n'
+srcport: 19614L
+srcip: 'xx.xx.xx.xx'
+dstport: 80L
+type: 'sinkhole'
+
+[2014-05-22 15:16:39.935661407] [1:4 base http] [1a1a1a1a] [FSI] [trafficconverter] 
+dstip: 'xx.xx.xx.xx'
+request: 'GET / HTTP/1.0\r\nUser-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)\r\nHost: foo.bar\r\nPragma: no-cache\r\n\r\n'
+srcport: 1949L
+srcip: 'xx.xx.xx.xx'
+dstport: 80L
+type: 'sinkhole'
+```
 ###nmsg_encode_hello_client.py
 ---------------------------
-Encodes a simple text blob using one or more encodings and send one or more NMSG
-datagrams.
+Let's check out some sample programs that build slightly more complex NMSG
+datagrams. The `nmsg_encode_hello_client.py` program builds NMSGs of type 
+`encode`. The encode message type is a simple format for enabling the 
+serialiazation of data into a handful of popular formats:
+
+ - [JSON](http://www.json.org/)
+ - [YAML](http://www.yaml.org/)
+ - [MsgPack](http://msgpack.org/)
+ - [XML](http://www.xml.org)
+
+And:
+
+ - Text
+
+`nmsg_encode_hello_client.py` serializes a text blob using one or more of the
+above encodings, sticks in an NMSG datagram, and fires one or more of them off.
 ```
 $ ./nmsg_encode_hello_client.py -h
 usage: nmsg_encode_hello_client.py [-h] [-i ITERATIONS]
                                    [-t {TEXT,JSON,YAML,MSGPACK,XML,ALL}]
                                    [addr_port]
 
-simple NMSG client
+simple NMSG encode client
 
 positional arguments:
   addr_port             address/port to listen for incoming NMSG datagrams
@@ -88,8 +225,7 @@ optional arguments:
   -t {TEXT,JSON,YAML,MSGPACK,XML,ALL}, --type {TEXT,JSON,YAML,MSGPACK,XML,ALL}
                         NSMG datagram(s) to send, use 'ALL' to send all types
 ```
-It uses the simple [ISC encoder](https://archive.farsightsecurity.com/NmsgType_ISC_encode/) to encapsulate payloads.
-
+To send two of each type, we would invoke the program as per the following:
 ```
 $ ./nmsg_encode_hello_client.py -tALL -i2 127.0.0.1/8431
 sending NMSG datagrams to 127.0.0.1/8431
@@ -99,10 +235,18 @@ sent 2 YAML-encoded payloads
 sent 2 MSGPACK-encoded payloads
 sent 2 dummy XML-encoded payloads
 ```
+And as it turns out, we also have a mate for `nmsg_encode_hello_client.py` that
+will happily receive, decode, and print its NMSG datagrams...
 
 ###nmsg_encode_hello_server.py
 ---------------------------
-Listens for NMSG datagrams and decodes and prints the results. 
+The server component to `nmsg_encode_hello_client.py`, 
+`nmsg_encode_hello_server.py` listens for encode type NMSG datagrams and 
+decodes and prints the results. Other NMSG datagrams are silently dropped.
+
+By default, it listens on 127.0.0.1/9430, but this can be overridden. 
+For every NMSG datagram it receives it prints to stderr the header info followed
+by a decoded payload (or error message).
 
 ```
 $ ./nmsg_encode_hello_server.py -h
@@ -118,36 +262,16 @@ optional arguments:
   -p, --prettyprint  pretty print output (JSON only)
 ```
 
-Has support for the following serialization encodings:
 
- - [JSON](http://www.json.org/)
- - [YAML](http://www.yaml.org/)
- - [MsgPack](http://msgpack.org/)
- - [XML](http://www.xml.org)
-
-And:
-
- - Text
-
-While it is written as a mate for `nmsg_encode_hello_client.py`, it is also a 
-standalone tool that can consume NMSG datagrams from any source, provided they
-are in an encoding format it understands. By default, it listens on 
-127.0.0.1/9430, but this can be overridden. For every NMSG datagram it receives
-it prints to stderr the header info followed by a decoded payload (or error
-message).
 
 ```
 foo
 ```
 
-###nmsg_message.py
----------------
 
 ###nmsg_channel_dump.py
 --------------------
 
-###nmsg_file_dump.py
------------------
 
 ###nmsg_nonblocking.py
 -------------------
@@ -155,8 +279,6 @@ foo
 ###nmsg_io_callback.py
 -------------------
 
-###nmsg_sock_dump.py
------------------
 
 License
 -------

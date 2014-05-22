@@ -109,7 +109,7 @@ def main(addr, port, prettyprint):
             process(m, prettyprint)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "Simple NMSG encoding server")
+    parser = argparse.ArgumentParser(description = "simple NMSG encode server")
     parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
             help = "address/port to listen for incoming NMSG datagrams")
     parser.add_argument("-p", "--prettyprint", dest = "prettyprint", 

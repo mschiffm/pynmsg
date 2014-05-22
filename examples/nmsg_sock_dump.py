@@ -19,28 +19,34 @@
 __revision__ = "1.1"
 
 import nmsg
-import socket
 import sys
 import time
+import argparse
 
-def main(addr, port, out):
+def main(addr, port):
     i = nmsg.input.open_sock(addr, port)
+    print "listening for NMSG datagrams on {0}/{1}...".format(addr, port)
 
     while True:
         m = i.read()
         if not m:
             break
 
-        nmsg.print_nmsg_header(m, out)
+        nmsg.print_nmsg_header(m, sys.stdout)
 
         for key in m.keys():
             val = m[key]
             if type(val) == list:
                 for v in val:
-                    out.write('%s: %s\n' % (key, repr(v)))
+                    print "{0}: {1}".format(key, repr(v))
             else:
-                out.write('%s: %s\n' % (key, repr(val)))
-        out.write('\n')
+                print "{0}: {1}".format(key, repr(val))
+        print ""
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.stdout)
+    parser = argparse.ArgumentParser(description = "listen for NMSG datagrams and dump them to the screen")
+    parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
+            help = "address/port to listen for incoming NMSG datagrams")
+    args = parser.parse_args()
+    address, port = args.addr_port.split("/")
+    main(address, int(port))
