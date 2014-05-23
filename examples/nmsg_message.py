@@ -33,6 +33,7 @@ args = parser.parse_args()
 addr, port = args.addr_port.split("/")
 
 o = nmsg.output.open_sock(addr, int(port))
+o.set_buffered(False)
 
 m = nmsg.msgtype.base.ipconn()
 
@@ -41,8 +42,9 @@ for i in range(0, int(args.number)):
     t = time.time()
     m.time_sec = int(t)
     m.time_nsec = int((t - int(t)) * 1E9)
-    m['srcip'] = '127.0.0.%s' % i
-    m['dstip'] = '127.1.0.%s' % i
+    m['srcip'] = "127.0.0.{0}".format(i)
+    m['dstip'] = "127.1.0.{0}".format(i)
     m['srcport'] = i
     m['dstport'] = 65535 - i
+    m['proto'] = 6  #TCP
     o.write(m)

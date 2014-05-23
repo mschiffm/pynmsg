@@ -4,11 +4,11 @@
 This is `pynmsg`, a Python extension module implemented in
 [Cython](http://cython.org/) for the [nmsg](https://github.com/farsightsec/nmsg)
 C library. If you want to shuffle NMSG datagrams to and fro using Python, this 
-is the right place.
+is the right place. Helpful documentation on NMSG data types can be found 
+[here](https://archive.farsightsecurity.com/NMSG_Data_Types/).
 
 ##Building
 --------
-
 Building from a git checkout requires a C compiler, Python (including the Python developer package), Cython, and the `nmsg` library to be installed first.
 Distribution tarballs ship with a copy of the Cython-generated code and do not
 require Cython to actually be installed.
@@ -19,17 +19,51 @@ require Cython to actually be installed.
 
 ##Testing
 -------
-Here's a short example to get you started:
+
+To get you started, here's a short example of building and sending an ipconn 
+NMSG datagram. In one terminal load up a python interpreter and enter the 
+following:
+```python
+>>>import nmsg
+>>>import sys
+>>>i = nmsg.input.open_sock("127.0.0.1", 9430)
+>>>while True:
+>>>    m = i.read()
+>>>    if not m:
+>>>        break
+>>>    nmsg.print_nmsg_header(m, sys.stdout)
 ```
-foo
+You've just instantiated an NMSG input object that will listen at 127.0.0.1/9430
+for NMSGS and print (just) the header.
+
+In another terminal, load up another interpreter and type this:
+```Python
+>>> import nmsg
+>>> import time
+>>> import socket
+>>> o = nmsg.output.open_sock("127.0.0.1", 9430)
+>>> o.set_buffered(False)
+>>> m = nmsg.msgtype.base.ipconn()
+>>> t = time.time()
+>>> m.time_sec = int(t)
+>>> m.time_nsec = int((t - int(t)) * 1E9)
+>>> m['srcip'] = socket.gethostbyname(socket.gethostname())
+>>> m['dstip'] = socket.gethostbyname(socket.gethostname())
+>>> m['srcport'] = 2134
+>>> m['dstport'] = 80
+>>> m['proto'] = socket.getprotobyname("TCP")
+>>> o.write(m)
 ```
+In your first interpreter session, you should see something akin to:
+```
+[2014-05-23 19:14:19.262332916] [1:5 base ipconn] [] [] [] 
+```
+Congratulations! You've just written and received your first NMSG datagram
+using pynmsg. Let's explore further...
 
 ##API Reference
 -------------
 Here's an abridged reference to the top level classes and methods you'll need
-```python
-foo.foo(foo)
-```
 
 ##Example Tools Reference
 -----------------------
@@ -40,8 +74,9 @@ utility of `nmsg` extended into Python.
 ---------------
 First and foremost, it'd be nice to build and send a few NMSG datagrams. Using
 `nmsg_message.py` you can do just that. It builds and sends ipconn 
-(IP connection) typed NMSG datagrams filled with bogus data. By default it sends
-NMSGs to 127.0.0.1/9430, but this can overridden.
+(IP connection) typed NMSG datagrams filled with bogus data. Ipconn messages 
+are 5-tuples intended to hold stateless information about IP connections. 
+By default the programs sends NMSGs to 127.0.0.1/9430, but this can overridden.
 
 ```
 $ ./nmsg_message.py -h
@@ -189,6 +224,20 @@ srcip: 'xx.xx.xx.xx'
 dstport: 80L
 type: 'sinkhole'
 ```
+
+###nmsg_channel_dump.py
+--------------------
+If you want to dump the NMSG datagrams flying around across a live channel 
+(assuming you have the proper access) `nmsg_channel_dump.py` is your
+champion.
+```
+foo
+```
+
+```
+foo
+```
+
 ###nmsg_encode_hello_client.py
 ---------------------------
 Let's check out some sample programs that build slightly more complex NMSG
@@ -261,7 +310,7 @@ positional arguments:
 optional arguments:
   -h, --help         show this help message and exit
 ```
-Some sample output is below:
+Sample output is below:
 ```
 $ ./nmsg_encode_hello_server.py 
 listening on 127.0.0.1/9430
@@ -281,11 +330,6 @@ payload: {
     "id": 1
 }
 ```
-
-
-###nmsg_channel_dump.py
---------------------
-
 
 ###nmsg_nonblocking.py
 -------------------
