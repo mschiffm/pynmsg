@@ -3,9 +3,8 @@
 
 This is `pynmsg`, a Python extension module implemented in
 [Cython](http://cython.org/) for the [nmsg](https://github.com/farsightsec/nmsg)
-C library. If you want to shuffle NMSG datagrams to and fro using Python, this 
-is the right place. Helpful documentation on NMSG data types can be found 
-[here](https://archive.farsightsecurity.com/NMSG_Data_Types/).
+C library, `libnmsg`. If you want to shuffle NMSG datagrams to and fro using 
+Python, this is the right place. 
 
 ##Building
 --------
@@ -32,9 +31,13 @@ following:
 >>>    if not m:
 >>>        break
 >>>    nmsg.print_nmsg_header(m, sys.stdout)
+>>>    for key in m.keys():
+>>>        val = m[key]
+>>>        print "{0}: {1}".format(key, repr(val))
+
 ```
 You've just instantiated an NMSG input object that will listen at 127.0.0.1/9430
-for NMSGS and print (just) the header.
+for NMSGS and print the header and some contents.
 
 In another terminal, load up another interpreter and type this:
 ```Python
@@ -54,16 +57,23 @@ In another terminal, load up another interpreter and type this:
 >>> m['proto'] = socket.getprotobyname("TCP")
 >>> o.write(m)
 ```
-In your first interpreter session, you should see something akin to:
+You just built and injected a single ipconn NMSG. In your first interpreter 
+session, you should see something akin to:
 ```
-[2014-05-23 19:14:19.262332916] [1:5 base ipconn] [] [] [] 
+[2014-05-24 15:35:49.738719940] [1:5 base ipconn] [] [] [] 
+srcip: '10.0.1.40'
+dstip: '10.0.1.40'
+srcport: 2134L
+dstport: 80L
+proto: 6L
+
 ```
 Congratulations! You've just written and received your first NMSG datagram
-using pynmsg. Let's explore further...
+using `pynmsg`. Let's explore further...
 
 ##API Reference
 -------------
-Here's an abridged reference to the top level classes and methods you'll need
+NYI
 
 ##Example Tools Reference
 -----------------------
@@ -74,8 +84,11 @@ utility of `nmsg` extended into Python.
 ---------------
 First and foremost, it'd be nice to build and send a few NMSG datagrams. Using
 `nmsg_message.py` you can do just that. It builds and sends ipconn 
-(IP connection) typed NMSG datagrams filled with bogus data. Ipconn messages 
-are 5-tuples intended to hold stateless information about IP connections. 
+(IP connection) typed NMSG datagrams filled with bogus data. Ipconn messages
+(like the one we sent in the example above) are 5-tuples intended to hold 
+stateless information about IP connections. Helpful documentation on NMSG data 
+types can  be found 
+[here](https://archive.farsightsecurity.com/NMSG_Data_Types/).
 By default the programs sends NMSGs to 127.0.0.1/9430, but this can overridden.
 
 ```
@@ -333,11 +346,85 @@ payload: {
 
 ###nmsg_nonblocking.py
 -------------------
+If you want to build a synchronous server that consumes NMSG datagrams you
+can use Python's [polling](https://docs.python.org/2/library/select.html#polling-objects) interface with `pynmsg`. `nmsg_nonblocking.py` is an example of
+how to do that. It registers the file descriptor from a `pynmsg` socket input 
+object with a polling object and times out (by default) every 1000 
+milliseconds while waiting for NMSGS. Like all of the other network programs 
+here, by default, it listens on 127.0.0.1/9430, but this can be overridden.
+```
+$ ./nmsg_nonblocking.py -h
+usage: nmsg_nonblocking.py [-h] [-t TIMEOUT] [addr_port]
+
+Asynchronous IO polling example
+
+positional arguments:
+  addr_port             address/port to listen for incoming NMSG datagrams
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TIMEOUT, --timeout TIMEOUT
+                        millisecond timeout
+```
+For example:
+```
+$ ./nmsg_nonblocking.py
+Nope, no NMSG...
+Nope, no NMSG...
+Nope, no NMSG...
+Nope, no NMSG...
+Nope, no NMSG...
+```
+And then in another terminal fire up the `nmsg_message.py` as per the
+following:
+```
+$ ./nmsg_message.py -n1
+sending 1 ipconn NMSG datagrams to 127.0.0.1/9430...
+$ ./nmsg_message.py -n2
+sending 2 ipconn NMSG datagrams to 127.0.0.1/9430...
+```
+And you should see:
+```
+[2014-05-24 15:09:49.325844049] [1:5 base ipconn] [] [] [] 
+Nope, no NMSG...
+Nope, no NMSG...
+Nope, no NMSG...
+[2014-05-24 15:09:52.647264003] [1:5 base ipconn] [] [] [] 
+[2014-05-24 15:09:52.647317886] [1:5 base ipconn] [] [] [] 
+Nope, no NMSG...
+```
 
 ###nmsg_io_callback.py
 -------------------
+`libnmsg` provides an event-based callback interface, similar to 
+[`libpcap`](http://www.tcpdump.org/pcap.html). That is, upon receiving an NMSG
+datagram, a user-specified function will be called to act upon it.
+`nmsg_io_callback.py` accesses that functionality using `pynmsg`'s io API. It
+expects a filename argument and it simply counts each NMSG it finds.
+```
+$ ./nmsg_io_callback.py -h
+usage: nmsg_io_callback.py [-h] infile
 
+open an NMSG file and execute a callback function on each message
 
+positional arguments:
+  infile      file containing NMSG datagrams
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+We can run the programm to count up the number of NMSGS in a file containing
+some raw passive DNS NMSGs from Farsight's massive sensor network:
+```
+$ ./nmsg_io_callback.py ch202.nmsg 
+....................
+count: 200058
+```
+We can check to make sure it's correct using `nmsgtool`:
+```
+$ nmsgtool -r ch202.nmsg | grep "1:9 base dnsqr" | wc -l
+200058
+```
 License
 -------
 

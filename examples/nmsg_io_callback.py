@@ -18,8 +18,9 @@
 
 __revision__ = "1.1"
 
-import nmsg
 import sys
+import nmsg
+import argparse
 
 count = 0
 
@@ -27,14 +28,23 @@ def cb(msg):
     global count
     count += 1
     if (count % 10000) == 0:
-        sys.stderr.write('.')
+        sys.stderr.write(".")
 
-io = nmsg.io()
-input = nmsg.input.open_file(sys.argv[1])
-io.add_input(input)
-io.add_output_callback(cb)
-io.add_output_callback(cb)
-io.add_output_callback(cb)
-io.loop()
+def main(fname):
+    io = nmsg.io()
+    input = nmsg.input.open_file(fname)
+    io.add_input(input)
+    #io.add_output_callback(cb)
+    #io.add_output_callback(cb)
+    io.add_output_callback(cb)
+    io.loop()
 
-print '\ncount=%s' % count
+    print '\ncount: {0}'.format(count)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = "open an NMSG file and execute a callback function on each message")
+    parser.add_argument("infile", action = "store",
+                help = "file containing NMSG datagrams")
+    args = parser.parse_args()
+    main(args.infile)
+

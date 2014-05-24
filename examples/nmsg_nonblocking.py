@@ -18,27 +18,36 @@
 
 __revision__ = "1.1"
 
-import select
 import sys
-
 import nmsg
+import select
+import argparse
 
-def main(ip, port):
+def main(ip, port, timeout):
     ni = nmsg.input.open_sock(ip, port)
     fd = ni.fileno()
+
+    ni.set_blocking_io(False)
 
     p = select.poll()
     p.register(fd, select.POLLIN)
 
     while True:
-        events = p.poll(1000)
+        events = p.poll(timeout)
         if events:
             m = ni.read()
             while m:
-                print 'got a message'
+                nmsg.print_nmsg_header(m, sys.stdout)
                 m = ni.read()
         else:
-            print 'no messages!'
+            print 'Nope, no NMSG...'
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description = "Synchronous IO polling example")
+    parser.add_argument("addr_port", nargs="?", default = "127.0.0.1/9430",
+            help = "address/port to listen for incoming NMSG datagrams")
+    parser.add_argument("-t", "--timeout", type = int, default = 1000,
+            help = "millisecond timeout")
+    args = parser.parse_args()
+    address, port = args.addr_port.split("/")
+    main(address, int(port), args.timeout)
