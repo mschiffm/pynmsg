@@ -19,7 +19,7 @@ require Cython to actually be installed.
 ##Testing
 -------
 
-To get you started, here's a short example of building and sending an ipconn 
+To get you started, here's a short example of building and sending an `ipconn` 
 NMSG datagram. In one terminal load up a python interpreter and enter the 
 following:
 ```python
@@ -57,7 +57,7 @@ In another terminal, load up another interpreter and type this:
 >>> m['proto'] = socket.getprotobyname("TCP")
 >>> o.write(m)
 ```
-You just built and injected a single ipconn NMSG. In your first interpreter 
+You just built and injected a single `ipconn` NMSG. In your first interpreter 
 session, you should see something akin to:
 ```
 [2014-05-24 15:35:49.738719940] [1:5 base ipconn] [] [] [] 
@@ -83,7 +83,7 @@ utility of `nmsg` extended into Python.
 ###nmsg_message.py
 ---------------
 First and foremost, it'd be nice to build and send a few NMSG datagrams. Using
-`nmsg_message.py` you can do just that. It builds and sends ipconn 
+`nmsg_message.py` you can do just that. It builds and sends `ipconn` 
 (IP connection) typed NMSG datagrams filled with bogus data. Ipconn messages
 (like the one we sent in the example above) are 5-tuples intended to hold 
 stateless information about IP connections. Helpful documentation on NMSG data 
